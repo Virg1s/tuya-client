@@ -1,0 +1,1 @@
+cp ../lib/tuya-dynamic-build-test/include/* ../lib/tuya-dynamic-build-test/utils/* ../lib/tuya-dynamic-build-test/interface/* tempinc/
