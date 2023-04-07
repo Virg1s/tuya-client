@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #include "cJSON.h"
 #include "tuya_cacert.h"
@@ -9,12 +10,24 @@
 #include "system_interface.h"
 #include "mqtt_client_interface.h"
 #include "tuyalink_core.h"
+//#include "tuya_lib.c"
 
+volatile sig_atomic_t exit_signal = 0;
+
+void set_exit_signal(int signo)
+{
+	exit_signal;
+}
 
 void on_connected(tuya_mqtt_context_t* context, void* user_data)
 {
+    char *value = (char *) user_data;
+    char *key = "funkcija";
+    char payload[1000];
+
+	snprintf(payload, sizeof(payload) - 50, "{\"%s\": \"%s\"}", key, value);
     TY_LOGI("on connected");
-    tuyalink_thing_property_report_with_ack(context, NULL, "{\"power\": \"asdfasdfasfd\"}");
+    tuyalink_thing_property_report_with_ack(context, NULL, payload);
 }
 
 void on_disconnect(tuya_mqtt_context_t* context, void* user_data)
@@ -42,11 +55,10 @@ void on_messages(tuya_mqtt_context_t* context, void* user_data, const tuyalink_m
     }
 }
 
-int communicate_with_cloud(const char *deviceId, const char *deviceSecret)
+int communicate_with_cloud(const char *deviceId, const char *deviceSecret, char *message)
 {
     int ret = OPRT_OK;
-
-    TY_LOGI(">>>> COMS <<<<< dev_id:%s, dev_secr", deviceId, deviceSecret);
+   
 	tuya_mqtt_context_t client;
 
     ret = tuya_mqtt_init(&client, &(const tuya_mqtt_config_t) {
@@ -60,9 +72,11 @@ int communicate_with_cloud(const char *deviceId, const char *deviceSecret)
         .timeout_ms = 2000,
         .on_connected = on_connected,
         .on_disconnect = on_disconnect,
-        .on_messages = on_messages
+        .on_messages = on_messages,
     });
     assert(ret == OPRT_OK);
+
+	client.user_data = (void *) message;
 
     ret = tuya_mqtt_connect(&client);
     assert(ret == OPRT_OK);
@@ -76,10 +90,10 @@ int communicate_with_cloud(const char *deviceId, const char *deviceSecret)
 /*
 int main(void)
 {
-	const char productId[] = "nzrhnvrqqkn1antk";
-	const char deviceId[] = "260a3c491702576a24puxs";
-	const char deviceSecret[] = "Zh2IY6v2vbULddDz";
+	const char productId[] = "xa5ecaywubiym1bq";
+	const char deviceId[] = "26bf9c459833b88e53mgqj";
+	const char deviceSecret[] = "5ZUcwOQRDm3rzNUQ";
 
-	communicate_with_cloud(deviceId, deviceSecret);
+	communicate_with_cloud(deviceId, deviceSecret, "debug message");
 }
 */

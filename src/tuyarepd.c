@@ -112,18 +112,16 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 int main(int argc, char **argv)
 {
-
-	printf("labas\n");
 	struct arguments arguments = {
 		.args = { "default message" },
-		.device_secret = "Zh2IY6v2vbULddDz",
-		.device_id = "260a3c491702576a24puxs",
-		.product_id = "nzrhnvrqqkn1antk"
+		.device_secret = "5ZUcwOQRDm3rzNUQ",
+		.device_id = "26bf9c459833b88e53mgqj",
+		.product_id = "xa5ecaywubiym1bq"
 	};
 
 	argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
-	//become_daemon();
+	become_daemon();
 
 	//setlogmask(LOG_UPTO (LOG_NOTICE));
 	openlog("TUYA MSG", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
@@ -134,7 +132,10 @@ int main(int argc, char **argv)
 	       arguments.args[0], arguments.device_id, arguments.device_secret,
 	       arguments.product_id);
 
-        communicate_with_cloud(arguments.device_id, arguments.device_secret);
+        communicate_with_cloud(arguments.device_id,
+		arguments.device_secret,
+		arguments.args[0]);
+
 	syslog(LOG_WARNING, "Exiting from the program");
 
 	sleep(20);
