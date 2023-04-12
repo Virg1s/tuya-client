@@ -15,6 +15,7 @@ volatile sig_atomic_t exit_trigger = 0;
 
 void set_exit_trigger(int signal)
 {
+	(void)signal;
 	exit_trigger = 1;
 }
 
@@ -24,7 +25,7 @@ int become_child(void)
 	case -1:
 		return -1;
 	case 0:
-		 return 0;
+		return 0;
 	default:
 		_exit(EXIT_SUCCESS); // kodel cia ne exit(0)?
 	}
@@ -124,12 +125,12 @@ int main(int argc, char **argv)
 	signal(SIGINT, set_exit_trigger);
 	signal(SIGTERM, set_exit_trigger);
 	signal(SIGHUP, set_exit_trigger);
-	
+
 	struct arguments arguments = { ////////////////DEBUG
-		.args = { "default message" },
-		.device_secret = "5ZUcwOQRDm3rzNUQ",
-		.device_id = "26bf9c459833b88e53mgqj",
-		.product_id = "xa5ecaywubiym1bq"
+				       .args = { "default message" },
+				       .device_secret = "5ZUcwOQRDm3rzNUQ",
+				       .device_id = "26bf9c459833b88e53mgqj",
+				       .product_id = "xa5ecaywubiym1bq"
 	};
 
 	argp_parse(&argp, argc, argv, 0, 0, &arguments);
@@ -138,15 +139,13 @@ int main(int argc, char **argv)
 
 	//setlogmask(LOG_UPTO (LOG_NOTICE));
 	openlog("TUYA MSG", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
-	
+
 	syslog(LOG_INFO,
 	       "login message: '%s', device_id: '%s', product_id: '%s'",
-	       arguments.args[0], arguments.device_id, arguments.device_secret,
-	       arguments.product_id);
+	       arguments.args[0], arguments.device_id, arguments.product_id);
 
-        communicate_with_cloud(arguments.device_id,
-		arguments.device_secret,
-		arguments.args[0]);
+	communicate_with_cloud(arguments.device_id, arguments.device_secret,
+			       arguments.args[0]);
 
 	syslog(LOG_INFO, "Exiting from the program");
 
