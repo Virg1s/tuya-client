@@ -5,9 +5,18 @@
 #include <syslog.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <signal.h>
 #include "tuya_lib.h"
+#include "tuyarepd.h"
 
 #define BD_MAX_CLOSE 8192
+
+volatile sig_atomic_t exit_trigger = 0;
+
+void set_exit_trigger(int signal)
+{
+	exit_trigger = 1;
+}
 
 int become_child(void)
 {
@@ -112,6 +121,8 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 int main(int argc, char **argv)
 {
+	signal(SIGINT, set_exit_trigger);
+	signal(SIGTERM, set_exit_trigger);
 	struct arguments arguments = {
 		.args = { "default message" },
 		.device_secret = "5ZUcwOQRDm3rzNUQ",
@@ -125,7 +136,7 @@ int main(int argc, char **argv)
 
 	//setlogmask(LOG_UPTO (LOG_NOTICE));
 	openlog("TUYA MSG", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
-
+	
 	syslog(LOG_INFO,
 	       "REPORT BEFORE COMMS >>> message: '%s', "
 	       "device_id: '%s', device_secret: '%s', product_id: '%s'",
@@ -136,9 +147,7 @@ int main(int argc, char **argv)
 		arguments.device_secret,
 		arguments.args[0]);
 
-	syslog(LOG_WARNING, "Exiting from the program");
-
-	sleep(20);
+	syslog(LOG_INFO, "Exiting from the program");
 
 	closelog();
 
