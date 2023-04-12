@@ -123,7 +123,9 @@ int main(int argc, char **argv)
 {
 	signal(SIGINT, set_exit_trigger);
 	signal(SIGTERM, set_exit_trigger);
-	struct arguments arguments = {
+	signal(SIGHUP, set_exit_trigger);
+	
+	struct arguments arguments = { ////////////////DEBUG
 		.args = { "default message" },
 		.device_secret = "5ZUcwOQRDm3rzNUQ",
 		.device_id = "26bf9c459833b88e53mgqj",
@@ -138,8 +140,7 @@ int main(int argc, char **argv)
 	openlog("TUYA MSG", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
 	
 	syslog(LOG_INFO,
-	       "REPORT BEFORE COMMS >>> message: '%s', "
-	       "device_id: '%s', device_secret: '%s', product_id: '%s'",
+	       "login message: '%s', device_id: '%s', product_id: '%s'",
 	       arguments.args[0], arguments.device_id, arguments.device_secret,
 	       arguments.product_id);
 
