@@ -11,7 +11,7 @@
 #include "system_interface.h"
 #include "mqtt_client_interface.h"
 #include "tuyalink_core.h"
-#include "tuya_lib.h"
+#include "tuya_interface.h"
 #include "tuyarepd.h"
 
 #define MESSAGE_LEN_LIMIT 1000

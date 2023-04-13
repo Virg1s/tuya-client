@@ -1,5 +1,10 @@
-LIBTUYA_LIBS := -L ../lib/tuya_build/lib -lplatform_port -lmiddleware_implementation -lutils_modules -llink_core
-LIBTUYA_INCL := -I ./tempinc
+TUYA_BUILD := ../lib/tuya_build
+TUYA_SRC := ../lib/tuya_sdk
+
+LIBTUYA_LIBS := -L ${TUYA_BUILD}/lib -lplatform_port -lmiddleware_implementation -lutils_modules -llink_core
+LIBTUYA_INCL := -I ${TUYA_SRC}/utils -I ${TUYA_SRC}/interface -I ${TUYA_SRC}/include -I ../include
+
+
 CC := gcc
 CFLAGS = -Wall -Wextra
 

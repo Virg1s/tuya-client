@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
-#include "tuya_lib.h"
+#include "tuya_interface.h"
 #include "tuyarepd.h"
 
 #define BD_MAX_CLOSE 8192
