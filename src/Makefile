@@ -1,14 +1,18 @@
 TUYA_BUILD := ../lib/tuya_build
 TUYA_SRC := ../lib/tuya_sdk
 
-LIBTUYA_LIBS := -L ${TUYA_BUILD}/lib -lplatform_port -lmiddleware_implementation -lutils_modules -llink_core
-LIBTUYA_INCL := -I ${TUYA_SRC}/utils -I ${TUYA_SRC}/interface -I ${TUYA_SRC}/include -I ../include
+LDFLAGS := -L ${TUYA_BUILD}/lib
+LDLIBS :=  -lplatform_port -lmiddleware_implementation -lutils_modules -llink_core
+CPPFLAGS := -I ${TUYA_SRC}/utils -I ${TUYA_SRC}/interface -I ${TUYA_SRC}/include -I ../include
 
+BIN:=main.out
+SRCS:=$(wildcard *.c)
+OBJS:=$(SRCS:.c=.o)
 
 CC := gcc
 CFLAGS = -Wall -Wextra
 
-.PHONY: all clean fresh tuyadbg
+.PHONY: all clean fresh
 
 all: main.out
 
@@ -20,15 +24,10 @@ fresh: clean all
 debug: CFLAGS += -ggdb3
 debug: fresh
 
-tuyadbg: tuya_interface.c
-	$(CC) $(CFLAGS) $(LIBTUYA_INCL) $^ -o $@ $(LIBTUYA_LIBS) 
+%.o:%.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $^
 
-lib_tuya.o: tuya_interface.c
-	$(CC) $(CFLAGS) $(LIBTUYA_INCL) $< -c -o $@ 
 
-tuyarepd.o: tuyarepd.c
-	$(CC) $(CFLAGS) $(LIBTUYA_INCL) $< -c -o $@ 
-
-main.out: lib_tuya.o tuyarepd.o
-	$(CC) $(CFLAGS) $^ -o $@ $(LIBTUYA_LIBS) 
+$(BIN): $(OBJS)
+	$(CC) $^ -o $@ $(LDFLAGS) $(LDLIBS) 
 	
