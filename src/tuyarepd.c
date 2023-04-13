@@ -44,7 +44,7 @@ int become_daemon(void)
 	if (become_child())
 		return -1;
 
-	umask(0); //should investigate how exactly musask works
+	umask(0);
 	chdir("/");
 
 	maxfd = sysconf(_SC_OPEN_MAX);

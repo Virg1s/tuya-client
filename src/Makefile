@@ -1,4 +1,4 @@
-LIBTUYA_LIBS := -L ./templib -lplatform_port -lmiddleware_implementation -lutils_modules -llink_core 
+LIBTUYA_LIBS := -L ../lib/tuya_build/lib -lplatform_port -lmiddleware_implementation -lutils_modules -llink_core
 LIBTUYA_INCL := -I ./tempinc
 CC := gcc
 CFLAGS = -Wall -Wextra
@@ -15,10 +15,10 @@ fresh: clean all
 debug: CFLAGS += -ggdb3
 debug: fresh
 
-tuyadbg: tuya_lib.c
+tuyadbg: tuya_interface.c
 	$(CC) $(CFLAGS) $(LIBTUYA_INCL) $^ -o $@ $(LIBTUYA_LIBS) 
 
-lib_tuya.o: tuya_lib.c
+lib_tuya.o: tuya_interface.c
 	$(CC) $(CFLAGS) $(LIBTUYA_INCL) $< -c -o $@ 
 
 tuyarepd.o: tuyarepd.c
