@@ -89,7 +89,6 @@ void log_stdout(int log_level, const char *format_string, ...)
 {
 	(void) log_level;
 
-
 	va_list args;
 	va_start(args, format_string);
 	vprintf(format_string, args);
@@ -102,6 +101,16 @@ void log_syslog(int log_level, const char *format_string, ...)
 	va_list args;
 	va_start(args, format_string);
 	vsyslog(log_level, format_string, args);
+	va_end(args);
+}
+
+void log_stderr(int log_level, const char *format_string, ...)
+{
+	(void) log_level;
+
+	va_list args;
+	va_start(args, format_string);
+	vfprintf(stderr, format_string, args);
 	va_end(args);
 }
 
@@ -155,6 +164,8 @@ int become_daemon(void)
 
 int initialize_resources(struct arguments *args)
 {
+	int ret_val = 0;
+
 	signal(SIGINT, set_exit_trigger);
 	signal(SIGTERM, set_exit_trigger);
 	signal(SIGHUP, set_exit_trigger);
@@ -162,16 +173,17 @@ int initialize_resources(struct arguments *args)
 	log_function = log_stdout;
 
 	if (args->daemon) {
-		become_daemon();
+		ret_val |= become_daemon();
 
-		setlogmask(LOG_UPTO (LOG_DEBUG));
+		ret_val |= setlogmask(LOG_UPTO (LOG_DEBUG));
 
 		openlog("TUYA MSG", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
 
 		log_function = log_syslog;
 	}
 
-	return 0;
+
+	return ret_val;
 }
 
 int release_resources(void)
@@ -183,6 +195,7 @@ int release_resources(void)
 
 int main(int argc, char **argv)
 {
+	int ret_val;
 
 	struct arguments arguments = {
 	       .args = { "default message" },
@@ -194,13 +207,23 @@ int main(int argc, char **argv)
 
 	argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
-	initialize_resources(&arguments);
+	//setting to stderr in case something fails in next function
+	log_function = log_stderr; 
 
-	communicate_with_cloud(arguments.device_id, arguments.device_secret,
+	ret_val = initialize_resources(&arguments);
+
+	if (ret_val) {
+		log_function(LOG_WARNING, "failed to initialize resources, exiting");
+		goto cleanup;
+	}
+
+	ret_val = communicate_with_cloud(arguments.device_id, arguments.device_secret,
 			       arguments.args[0]);
 
 	log_function(LOG_INFO, "Exiting from the program");
 	
+	cleanup:
+
 	release_resources();
 
 	return 0;
