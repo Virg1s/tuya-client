@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <syslog.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -25,7 +24,7 @@ void on_connected(tuya_mqtt_context_t *context, void *user_data)
 	char payload[1000];
 
 	snprintf(payload, sizeof(payload), "{\"%s\": \"%s\"}", key, value);
-	syslog(LOG_INFO, "connected to cloud");
+	log_function(LOG_INFO, "connected to cloud");
 	tuyalink_thing_property_report_with_ack(context, NULL, payload);
 }
 
@@ -33,7 +32,7 @@ void on_disconnect(tuya_mqtt_context_t *context, void *user_data)
 {
 	(void)context;
 	(void)user_data;
-	syslog(LOG_INFO, "disconnected from the cloud");
+	log_function(LOG_INFO, "disconnected from the cloud");
 }
 
 void on_messages(tuya_mqtt_context_t *context, void *user_data,
@@ -44,18 +43,18 @@ void on_messages(tuya_mqtt_context_t *context, void *user_data,
 
 	int wrlen;
 
-	syslog(LOG_INFO, "on message id:%s, type:%d, code:%d", msg->msgid,
+	log_function(LOG_INFO, "on message id:%s, type:%d, code:%d", msg->msgid,
 	       msg->type, msg->code);
 	switch (msg->type) {
 	case THING_TYPE_MODEL_RSP:
-		syslog(LOG_INFO, "Model data:%s", msg->data_string);
+		log_function(LOG_INFO, "Model data:%s", msg->data_string);
 		break;
 
 	case THING_TYPE_PROPERTY_SET:
 		wrlen = fwrite(msg->data_string, sizeof(char),
 			       strnlen(msg->data_string, MESSAGE_LEN_LIMIT),
 			       cmessages);
-		syslog(LOG_INFO, "property set:%s, fp: %ld, wrlen: %d",
+		log_function(LOG_INFO, "property set:%s, fp: %ld, wrlen: %d",
 		       msg->data_string, (long)cmessages, wrlen);
 		break;
 
@@ -72,7 +71,7 @@ int communicate_with_cloud(const char *deviceId, const char *deviceSecret,
 {
 	int ret = OPRT_OK;
 	cmessages = fopen("/home/virgis/dev/teltonika/part4/src/cloud_messages", "a");
-	syslog(LOG_INFO, "cmessages: %ld", (long)cmessages);
+	log_function(LOG_INFO, "cmessages: %ld", (long)cmessages);
 
 	tuya_mqtt_context_t client;
 
