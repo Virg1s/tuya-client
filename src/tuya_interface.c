@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -14,6 +13,7 @@
 #include "tuyarepd.h"
 
 #define MESSAGE_LEN_LIMIT 1000
+#define CLOUD_MESSAGE_LOG "/home/virgis/dev/teltonika/part4/src/cloud_messages"
 
 FILE *cmessages;
 
@@ -70,8 +70,8 @@ int communicate_with_cloud(const char *deviceId, const char *deviceSecret,
 			   char *message)
 {
 	int ret = OPRT_OK;
-	cmessages = fopen("/home/virgis/dev/teltonika/part4/src/cloud_messages", "a");
-	log_function(LOG_INFO, "cmessages: %ld", (long)cmessages);
+
+	cmessages = fopen(CLOUD_MESSAGE_LOG, "a");
 
 	tuya_mqtt_context_t client;
 
@@ -89,20 +89,25 @@ int communicate_with_cloud(const char *deviceId, const char *deviceSecret,
 				     .on_disconnect = on_disconnect,
 				     .on_messages = on_messages,
 			     });
-	assert(ret == OPRT_OK);
+	if (ret != OPRT_OK)
+		goto cleanup;
 
 	client.user_data = (void *)message;
 
 	ret = tuya_mqtt_connect(&client);
-	assert(ret == OPRT_OK);
+
+	if (ret != OPRT_OK)
+		goto cleanup;
 
 	while (!exit_trigger) {
 		tuya_mqtt_loop(&client);
 	}
 
-	fclose(cmessages);
 	tuya_mqtt_disconnect(&client);
+
+	cleanup: 
 	tuya_mqtt_deinit(&client);
+	fclose(cmessages);
 
 	return ret;
 }
