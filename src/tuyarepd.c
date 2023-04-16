@@ -12,6 +12,10 @@
 
 #define STDOUT_LOG_INTRO_MAX_SIZE 80
 #define BD_MAX_CLOSE 8192
+#define OPT_DEV_ID 'd'
+#define OPT_DEV_SECR 's'
+#define OPT_PROD_ID 'p'
+#define OPT_DAEMONIZE 0x80
 
 static char doc[] =
 	"daemon program that sends arbitrary string to tuya cloud\n"
@@ -20,9 +24,10 @@ static char doc[] =
 static char args_doc[] = "MESSAGE_STRING";
 
 static struct argp_option options[] = {
-	{ "device_id", 'd', "STRING", 0, "device id", 0 },
-	{ "device_secret", 's', "STRING", 0, "device secret key", 0 },
-	{ "product_id", 'p', "STRING", 0, "product id", 0 },
+	{ "device_id", OPT_DEV_ID, "STRING", 0, "device id", 0 },
+	{ "device_secret", OPT_DEV_SECR, "STRING", 0, "device secret key", 0 },
+	{ "product_id", OPT_PROD_ID, "STRING", 0, "product id", 0 },
+	{ "daemonize", OPT_DAEMONIZE, 0, 0, "run program as daemon", 0 },
 	{ 0 }
 };
 
@@ -39,14 +44,17 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 	struct arguments *arguments = state->input;
 
 	switch (key) {
-	case 'd':
+	case OPT_DEV_ID:
 		arguments->device_id = arg;
 		break;
-	case 's':
+	case OPT_DEV_SECR:
 		arguments->device_secret = arg;
 		break;
-	case 'p':
+	case OPT_PROD_ID:
 		arguments->product_id = arg;
+		break;
+	case OPT_DAEMONIZE:
+		arguments->daemon = 1;
 		break;
 
 	case ARGP_KEY_ARG:
@@ -156,7 +164,7 @@ int initialize_resources(struct arguments *args)
 	if (args->daemon) {
 		become_daemon();
 
-		setlogmask(LOG_UPTO (LOG_NOTICE));
+		setlogmask(LOG_UPTO (LOG_DEBUG));
 
 		openlog("TUYA MSG", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
 
@@ -187,7 +195,6 @@ int main(int argc, char **argv)
 	argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
 	initialize_resources(&arguments);
-	log_function = log_stdout;
 
 	log_function(LOG_INFO,
 	       "INITIAL DATA -> login message: '%s', device_id: '%s', product_id: '%s'",
