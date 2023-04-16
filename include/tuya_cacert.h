@@ -1,4 +1,4 @@
-const char tuya_cacert_pem[] = {\
+const unsigned char tuya_cacert_pem[] = {\
 "-----BEGIN CERTIFICATE-----\n"\
 "MIIDxTCCAq2gAwIBAgIBADANBgkqhkiG9w0BAQsFADCBgzELMAkGA1UEBhMCVVMx\n"\
 "EDAOBgNVBAgTB0FyaXpvbmExEzARBgNVBAcTClNjb3R0c2RhbGUxGjAYBgNVBAoT\n"\

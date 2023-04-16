@@ -71,8 +71,7 @@ int communicate_with_cloud(const char *deviceId, const char *deviceSecret,
 			   char *message)
 {
 	int ret = OPRT_OK;
-	cmessages = fopen("/home/virgis/dev/teltonika/part4/src/cloud_messages",
-			  "a");
+	cmessages = fopen("/home/virgis/dev/teltonika/part4/src/cloud_messages", "a");
 	syslog(LOG_INFO, "cmessages: %ld", (long)cmessages);
 
 	tuya_mqtt_context_t client;
