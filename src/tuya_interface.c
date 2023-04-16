@@ -28,13 +28,6 @@ void on_connected(tuya_mqtt_context_t *context, void *user_data)
 	tuyalink_thing_property_report_with_ack(context, NULL, payload);
 }
 
-void on_disconnect(tuya_mqtt_context_t *context, void *user_data)
-{
-	(void)context;
-	(void)user_data;
-	log_function(LOG_INFO, "disconnected from the cloud");
-}
-
 void on_messages(tuya_mqtt_context_t *context, void *user_data,
 		 const tuyalink_message_t *msg)
 {
@@ -86,7 +79,6 @@ int communicate_with_cloud(const char *deviceId, const char *deviceSecret,
 				     .keepalive = 100,
 				     .timeout_ms = 2000,
 				     .on_connected = on_connected,
-				     .on_disconnect = on_disconnect,
 				     .on_messages = on_messages,
 			     });
 	if (ret != OPRT_OK)

@@ -196,10 +196,6 @@ int main(int argc, char **argv)
 
 	initialize_resources(&arguments);
 
-	log_function(LOG_INFO,
-	       "INITIAL DATA -> login message: '%s', device_id: '%s', product_id: '%s'",
-	       arguments.args[0], arguments.device_id, arguments.product_id);
-
 	communicate_with_cloud(arguments.device_id, arguments.device_secret,
 			       arguments.args[0]);
 
