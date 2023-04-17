@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/sysinfo.h>
 
 #include "cJSON.h"
 #include "tuya_cacert.h"
@@ -14,6 +15,7 @@
 
 #define MESSAGE_LEN_LIMIT 1000
 #define CLOUD_MESSAGE_LOG "/home/virgis/dev/teltonika/part4/src/cloud_messages"
+#define CLOUD_FUNCTION_NAME "send_msg"
 
 FILE *cmessages;
 
@@ -32,18 +34,7 @@ int send_msg_to_cloud(tuya_mqtt_context_t *context, char *key, char *value)
 
 void on_connected(tuya_mqtt_context_t *context, void *user_data)
 {
-	/*
-	char *value = (char *)user_data;
-	char *key = "funkcija";
-	char payload[1000];
-
-	log_function(LOG_INFO, "connected to cloud");
-
-	snprintf(payload, sizeof(payload), "{\"%s\": \"%s\"}", key, value);
-	tuyalink_thing_property_report_with_ack(context, NULL, payload);
-	*/
-
-	send_msg_to_cloud(context, "funkcija", (char *) user_data);
+	send_msg_to_cloud(context, CLOUD_FUNCTION_NAME, (char *) user_data);
 }
 
 void on_messages(tuya_mqtt_context_t *context, void *user_data,
@@ -116,6 +107,24 @@ void deinit_resources(tuya_mqtt_context_t *client_p)
 	fclose(cmessages);
 }
 
+int send_uptime_to_cloud(tuya_mqtt_context_t *client_p)
+{
+	struct sysinfo s_info;
+	char uptime[MESSAGE_LEN_LIMIT];
+	int error = sysinfo(&s_info);
+
+	if(error != 0) {
+		log_function(LOG_WARNING, "can not obtain uptime");
+		return error;
+	}
+
+	snprintf(uptime, MESSAGE_LEN_LIMIT, "%ld", s_info.uptime);
+
+	send_msg_to_cloud(client_p, CLOUD_FUNCTION_NAME, uptime);
+
+	return 0;
+}
+
 int communicate_with_cloud(const char *deviceId, const char *deviceSecret, char *message)
 {
 	int ret = 0;
@@ -129,7 +138,8 @@ int communicate_with_cloud(const char *deviceId, const char *deviceSecret, char 
 	}
 
 	while (!exit_trigger && ret == OPRT_OK) {
-		send_msg_to_cloud(&client, "funkcija", "labassssssssssss");
+		if (send_uptime_to_cloud(&client))
+			break;
 		ret = tuya_mqtt_loop(&client);
 	}
 
