@@ -173,9 +173,9 @@ int initialize_resources(struct arguments *args)
 	log_function = log_stdout;
 
 	if (args->daemon) {
-		ret_val |= become_daemon();
+		ret_val = become_daemon();
 
-		ret_val |= setlogmask(LOG_UPTO (LOG_DEBUG));
+		setlogmask(LOG_UPTO (LOG_DEBUG));
 
 		openlog("TUYA MSG", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
 
