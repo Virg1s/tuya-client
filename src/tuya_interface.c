@@ -74,16 +74,17 @@ void on_messages(tuya_mqtt_context_t *context, void *user_data,
 	}
 }
 
-int communicate_with_cloud(const char *deviceId, const char *deviceSecret,
-			   char *message)
+int init_resources(tuya_mqtt_context_t *client_p, const char *deviceId, const char *deviceSecret, char *message)
 {
-	int ret = OPRT_OK;
+	int ret;
+
 
 	cmessages = fopen(CLOUD_MESSAGE_LOG, "a");
 
-	tuya_mqtt_context_t client;
+	if (cmessages == NULL)
+		return -1;
 
-	ret = tuya_mqtt_init(&client,
+	ret = tuya_mqtt_init(client_p,
 			     &(const tuya_mqtt_config_t){
 				     .host = "m1.tuyacn.com",
 				     .port = 8883,
@@ -97,14 +98,35 @@ int communicate_with_cloud(const char *deviceId, const char *deviceSecret,
 				     .on_messages = on_messages,
 			     });
 	if (ret != OPRT_OK)
-		goto cleanup;
+		return -1;
 
-	client.user_data = (void *)message;
+	client_p->user_data = (void *) message;
 
-	ret = tuya_mqtt_connect(&client);
+	ret = tuya_mqtt_connect(client_p);
 
 	if (ret != OPRT_OK)
-		goto cleanup;
+		return -1;
+
+	return 0;
+}
+
+void deinit_resources(tuya_mqtt_context_t *client_p)
+{
+	tuya_mqtt_deinit(client_p);
+	fclose(cmessages);
+}
+
+int communicate_with_cloud(const char *deviceId, const char *deviceSecret, char *message)
+{
+	int ret = 0;
+	tuya_mqtt_context_t client;
+
+	ret = init_resources(&client, deviceId, deviceSecret, message); 
+
+	if (ret) {
+		deinit_resources(&client);
+		return ret;
+	}
 
 	while (!exit_trigger && ret == OPRT_OK) {
 		send_msg_to_cloud(&client, "funkcija", "labassssssssssss");
@@ -113,9 +135,7 @@ int communicate_with_cloud(const char *deviceId, const char *deviceSecret,
 
 	tuya_mqtt_disconnect(&client);
 
-	cleanup: 
-	tuya_mqtt_deinit(&client);
-	fclose(cmessages);
+	deinit_resources(&client);
 
-	return ret;
+	return 0;
 }
