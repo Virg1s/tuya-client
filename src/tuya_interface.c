@@ -21,11 +21,13 @@ int send_msg_to_cloud(tuya_mqtt_context_t *context, char *key, char *value)
 {
 	char payload[MESSAGE_LEN_LIMIT];
 
-	log_function(LOG_INFO, "sending message to the cloud: {\"%s\": \"%s\"}", key, value);
-
 	snprintf(payload, sizeof(payload), "{\"%s\": \"%s\"}", key, value);
 
+	log_function(LOG_INFO, "sending message to the cloud: {\"%s\": \"%s\"}", key, value);
+
 	tuyalink_thing_property_report_with_ack(context, NULL, payload);
+
+	return 0;
 }
 
 void on_connected(tuya_mqtt_context_t *context, void *user_data)
@@ -54,18 +56,19 @@ void on_messages(tuya_mqtt_context_t *context, void *user_data,
 
 	log_function(LOG_INFO, "on message id:%s, type:%d, code:%d", msg->msgid,
 	       msg->type, msg->code);
+
 	switch (msg->type) {
 	case THING_TYPE_PROPERTY_SET:
 		wrlen = fwrite(msg->data_string, sizeof(char),
 			       strnlen(msg->data_string, MESSAGE_LEN_LIMIT),
 			       cmessages);
-		log_function(LOG_INFO, "property set:%s, fp: %ld, wrlen: %d",
-		       msg->data_string, (long)cmessages, wrlen);
-		break;
+		if (wrlen) {
+			log_function(LOG_INFO, "property set:%s", msg->data_string);
+		} else {
+			log_function(LOG_INFO, "failed to set property:%s", msg->data_string);
+		}
 
-	case THING_TYPE_PROPERTY_REPORT_RSP:
 		break;
-
 	default:
 		break;
 	}
