@@ -17,15 +17,31 @@
 
 FILE *cmessages;
 
+int send_msg_to_cloud(tuya_mqtt_context_t *context, char *key, char *value)
+{
+	char payload[MESSAGE_LEN_LIMIT];
+
+	log_function(LOG_INFO, "sending message to the cloud: {\"%s\": \"%s\"}", key, value);
+
+	snprintf(payload, sizeof(payload), "{\"%s\": \"%s\"}", key, value);
+
+	tuyalink_thing_property_report_with_ack(context, NULL, payload);
+}
+
 void on_connected(tuya_mqtt_context_t *context, void *user_data)
 {
+	/*
 	char *value = (char *)user_data;
 	char *key = "funkcija";
 	char payload[1000];
 
-	snprintf(payload, sizeof(payload), "{\"%s\": \"%s\"}", key, value);
 	log_function(LOG_INFO, "connected to cloud");
+
+	snprintf(payload, sizeof(payload), "{\"%s\": \"%s\"}", key, value);
 	tuyalink_thing_property_report_with_ack(context, NULL, payload);
+	*/
+
+	send_msg_to_cloud(context, "funkcija", (char *) user_data);
 }
 
 void on_messages(tuya_mqtt_context_t *context, void *user_data,
@@ -39,10 +55,6 @@ void on_messages(tuya_mqtt_context_t *context, void *user_data,
 	log_function(LOG_INFO, "on message id:%s, type:%d, code:%d", msg->msgid,
 	       msg->type, msg->code);
 	switch (msg->type) {
-	case THING_TYPE_MODEL_RSP:
-		log_function(LOG_INFO, "Model data:%s", msg->data_string);
-		break;
-
 	case THING_TYPE_PROPERTY_SET:
 		wrlen = fwrite(msg->data_string, sizeof(char),
 			       strnlen(msg->data_string, MESSAGE_LEN_LIMIT),
@@ -91,8 +103,9 @@ int communicate_with_cloud(const char *deviceId, const char *deviceSecret,
 	if (ret != OPRT_OK)
 		goto cleanup;
 
-	while (!exit_trigger) {
-		tuya_mqtt_loop(&client);
+	while (!exit_trigger && ret == OPRT_OK) {
+		send_msg_to_cloud(&client, "funkcija", "labassssssssssss");
+		ret = tuya_mqtt_loop(&client);
 	}
 
 	tuya_mqtt_disconnect(&client);
